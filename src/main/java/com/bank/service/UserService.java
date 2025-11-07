@@ -1,7 +1,9 @@
 package com.bank.service;
-
+import com.bank.security.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.bank.model.Role;
 import com.bank.model.User;
 import com.bank.repository.UserRepository;
 
@@ -18,12 +20,21 @@ public class UserService {
         }
         return userRepository.save(user);
     }
+    public User assignRole(Long userId, Role role) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setRole(role);
+        return userRepository.save(user);
+    }
 
-    public User login(String username, String password) {
+    public String login(String username, String password) {
         User user = userRepository.findByUsername(username);
         if (user == null || !user.getPassword().equals(password)) {
-            throw new RuntimeException("Invalid username or password!");
+            throw new RuntimeException("Invalid credentials");
         }
-        return user;
+        return JwtTokenUtil.generateToken(user.getUsername(), user.getRole().name());
     }
+
+
+
 }
